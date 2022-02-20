@@ -6,7 +6,7 @@ module.exports.createCard = (req, res) => {
   if (!name || !link || !owner) {
     res.status(500).send({ message: 'Неправильные параметры' });
   }
-  User.create({ name, link, owner })
+  Card.create({ name, link, owner })
     .then((card) => res.send({ data: card }))
     .catch((err) => res.status(500).send({ message: `Произошла ошибка в createCard: ${err.name}` }));
 };
@@ -17,14 +17,14 @@ module.exports.deleteCard = (req, res) => {
     return;
   }
   Card.findByIdAndRemove(req.params.id)
-    .populate("owner")
+    .populate('owner')
     .then((card) => res.send({ data: card }))
     .catch((err) => res.status(500).send({ message: `Произошла ошибка в deleteCard: ${err.name}` }));
 };
 
 module.exports.getCards = (req, res) => {
   const owner = req.user._id;
-  Card.find({owner})
+  Card.find({ owner })
     .then((cards) => res.send({ data: cards }))
     .catch((err) => res.status(500).send({ message: `Произошла ошибка в getCards: ${err.name}` }));
 };
