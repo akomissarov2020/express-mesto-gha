@@ -21,7 +21,7 @@ app.use('/', require('./routes/users'));
 app.use('/', require('./routes/cards'));
 
 app.use('*', (req, res) => {
-  res.status(404).send({"message": "Ресурс не найден. Проверьте URL и метод запроса"});
+  res.status(404).send({ message: 'Ресурс не найден. Проверьте URL и метод запроса' });
 });
 
 app.listen(PORT, () => {

@@ -18,7 +18,12 @@ module.exports.addUser = (req, res) => {
   }
   User.create({ name, about, avatar })
     .then((user) => res.send(user))
-    .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err.name} ${err.message}` }));
+    .catch((err) => {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Неправильные параметры' });
+      }
+      res.status(500).send({ message: `Произошла ошибка: ${err.name} ${err.message}` });
+    });
 };
 
 module.exports.getUser = (req, res) => {
@@ -58,7 +63,12 @@ module.exports.createFirstUser = (req, res) => {
     const avatar = 'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50';
     User.create({ name, about, avatar })
       .then((user) => res.send(user))
-      .catch((e) => res.status(500).send({ message: `Произошла ошибка в createFirstUser: ${e.name} ${e.message}` }));
+      .catch((e) => {
+        if (e.name === 'ValidationError') {
+          res.status(400).send({ message: 'Неправильные параметры' });
+        }
+        res.status(500).send({ message: `Произошла ошибка: ${e.name} ${e.message}` });
+      });
   });
 };
 
@@ -81,7 +91,7 @@ module.exports.updateUser = (req, res) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
         res.status(400).send({ message: 'Неправильные параметры' });
         return;
       }
