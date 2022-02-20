@@ -21,6 +21,7 @@ module.exports.addUser = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'ValidationError') {
         res.status(400).send({ message: 'Неправильные параметры' });
+        return;
       }
       res.status(500).send({ message: `Произошла ошибка: ${err.name} ${err.message}` });
     });
@@ -81,6 +82,7 @@ module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
   if (!name || !about) {
     res.status(400).send({ message: 'Неправильные параметры' });
+    return;
   }
   User.findByIdAndUpdate(_id, { name, about }, { new: true })
     .then((user) => {
@@ -108,6 +110,7 @@ module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
   if (!avatar) {
     res.status(400).send({ message: 'Неправильные параметры' });
+    return;
   }
   User.findByIdAndUpdate(_id, { avatar }, { new: true })
     .then((user) => {

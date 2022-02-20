@@ -16,6 +16,7 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   if (!name || !link || !owner) {
     res.status(400).send({ message: 'Неправильные параметры' });
+    return;
   }
   Card.create({ name, link, owner })
     .then((card) => res.send(card))
