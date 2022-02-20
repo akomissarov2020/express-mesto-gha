@@ -84,7 +84,7 @@ module.exports.updateUser = (req, res) => {
     res.status(400).send({ message: 'Неправильные параметры' });
     return;
   }
-  User.findByIdAndUpdate(_id, { name, about }, { new: true })
+  User.findByIdAndUpdate(_id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
         res.status(404).send({ message: 'Пользователь не найден' });
@@ -112,7 +112,7 @@ module.exports.updateUserAvatar = (req, res) => {
     res.status(400).send({ message: 'Неправильные параметры' });
     return;
   }
-  User.findByIdAndUpdate(_id, { avatar }, { new: true })
+  User.findByIdAndUpdate(_id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
         res.status(404).send({ message: 'Пользователь не найден' });
