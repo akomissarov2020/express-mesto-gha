@@ -19,6 +19,6 @@ router.get('/init', createFirstUser);
 
 router.patch('/users/me', updateUser);
 
-router.patch('/users/avatar', updateUserAvatar);
+router.patch('/users/me/avatar', updateUserAvatar);
 
 module.exports = router;
