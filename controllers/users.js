@@ -28,10 +28,6 @@ module.exports.addUser = (req, res) => {
 };
 
 module.exports.getUser = (req, res) => {
-  if (!req.params.id) {
-    res.status(500).send({ message: 'Неправильные параметры' });
-    return;
-  }
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
@@ -121,7 +117,7 @@ module.exports.updateUserAvatar = (req, res) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
         res.status(400).send({ message: 'Неправильные параметры' });
         return;
       }

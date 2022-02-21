@@ -49,25 +49,6 @@ module.exports.deleteCard = (req, res) => {
 };
 
 module.exports.likeCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .populate('owner')
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена' });
-        return;
-      }
-      res.send(card);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Неправильные параметры' });
-        return;
-      }
-      res.status(500).send({ message: `Произошла ошибка: ${err.name} ${err.message}` });
-    });
-};
-
-module.exports.likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
