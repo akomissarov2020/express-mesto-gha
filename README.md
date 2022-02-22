@@ -1,4 +1,7 @@
 [![Tests](https://github.com/akomissarov2020/express-mesto-gha/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/akomissarov2020/express-mesto-gha/actions/workflows/tests-13-sprint.yml) [![Tests](https://github.com/akomissarov2020/express-mesto-gha/actions/workflows/tests-14-sprint.yml/badge.svg)](https://github.com/akomissarov2020/express-mesto-gha/actions/workflows/tests-14-sprint.yml)
+
+**К сожалению, сейчас тесты не пройти, потому что там стоит проверка импортов и просит удалить пакеты cookie-parser и jsonwebtoken**
+
 # Проект Mesto фронтенд + бэкенд
 
 
