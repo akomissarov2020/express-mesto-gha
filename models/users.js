@@ -1,7 +1,7 @@
 const validator = require('validator');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const WrongCredsError = require('../errors/wrong_creds');
+const Error401 = require('../errors/error401');
 
 const usersSchema = new mongoose.Schema({
   name: {
@@ -24,7 +24,7 @@ const usersSchema = new mongoose.Schema({
     type: String,
     required: false,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-    validate: /https?:\/\/[a-z\d\-\._~\:\/\?#\[\]@!\$\&\'\(\)*\+,;\=]+#?/,
+    validate: /^https?:\/\/[a-z\d\-._~:/?#[\]@!$&'()*+,;=]+#?$/,
   },
   email: {
     type: String,
@@ -32,7 +32,6 @@ const usersSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator: validator.isEmail,
-      message: (props) => `${props.value} некорретный email!`,
     },
   },
   password: {
@@ -42,21 +41,22 @@ const usersSchema = new mongoose.Schema({
   },
 });
 
-usersSchema.statics.findUserByCredentials = function (email, password) {
-  return this.findOne({ email })
+usersSchema.statics.findUserByCredentials = (email, password) => {
+  this.findOne({ email })
     .select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new WrongCredsError('Неправильные почта или пароль'));
+        return Promise.reject(new Error401('Неправильные почта или пароль'));
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new WrongCredsError('Неправильные почта или пароль'));
+            return Promise.reject(new Error401('Неправильные почта или пароль'));
           }
           return user;
         });
-    });
+    })
+    .catch(() => Promise.reject(new Error('На сервере произошла ошибка')));
 };
 
 module.exports = mongoose.model('user', usersSchema);

@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { celebrate, Joi, errors } = require('celebrate');
 const cookieParser = require('cookie-parser');
 const authMiddleware = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
@@ -19,22 +20,42 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().pattern(/^https?:\/\/[a-z\d\-._~:/?#[\]@!$&'()*+,;=]+#?&/),
+    email: Joi.string().email().required(),
+    password: Joi.string().required().min(8).max(35),
+  }),
+}), login);
 
-app.use(authMiddleware); // auth shield
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }),
+}), createUser);
+
+app.use(authMiddleware);
 app.use('/', require('./routes/users'));
 app.use('/', require('./routes/cards'));
 
-app.use('*', (req, res, next) => next(new Error404('Ресурс не найден. Проверьте URL и метод запроса')));
+app.use('*', (req, res, next) => next(
+  new Error404('Ресурс не найден. Проверьте URL и метод запроса'),
+));
+
+// Celebrate errors
+app.use(errors());
 
 // здесь обрабатываем все ошибки
 app.use((err, req, res, next) => {
-  const { statusCode = 500, message, name } = err;
-  console.log('Finally', err);
+  const { statusCode = 500, message } = err;
+  // console.log(err);
   res.status(statusCode).send(
     { message: statusCode === 500 ? 'На сервере произошла ошибка' : message },
   );
+  next();
 });
 
 app.listen(PORT, () => {

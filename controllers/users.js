@@ -2,12 +2,18 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/users');
 const Error400 = require('../errors/error400');
+const Error401 = require('../errors/error401');
 const Error404 = require('../errors/error404');
-const WrongCredsError = require('../errors/wrong_creds');
+const Error409 = require('../errors/error409');
 
 require('dotenv').config();
 
 const { NODE_ENV, JWT_SECRET } = process.env;
+
+function getUserWithoutPassword(user) {
+  const { password, ...responseUser } = user._doc;
+  return responseUser;
+}
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -21,9 +27,6 @@ module.exports.createUser = (req, res, next) => {
   }
 
   const {
-    name,
-    about,
-    avatar,
     email,
     password,
   } = req.body;
@@ -34,24 +37,13 @@ module.exports.createUser = (req, res, next) => {
 
   User.findOne({ email })
     .then((user) => {
-      if (user) next(new Error400('Пользователь существует'));
-    })
-    .catch();
+      if (user) {
+        throw new Error409('Пользователь существует');
+      }
 
-  bcrypt.hash(password, 10)
-    .then((hash) => {
-      const userObject = name ? {
-        name,
-        about,
-        avatar,
-        email,
-        password: hash,
-      } : { email, password: hash };
-      User.create(userObject)
-        .then((user) => {
-          const { password, ...responseUser } = user._doc;
-          return res.send(responseUser);
-        })
+      bcrypt.hash(password, 10)
+        .then((hash) => User.create({ email, password: hash }))
+        .then((usr) => res.status(201).send(getUserWithoutPassword(usr)))
         .catch((err) => {
           if (err.name === 'ValidationError') {
             return next(new Error400('Неправильные формат email'));
@@ -62,7 +54,8 @@ module.exports.createUser = (req, res, next) => {
           return next(err);
         });
     })
-    .catch((err) => next(err));
+    .catch(next);
+  return undefined;
 };
 
 module.exports.getUser = (req, res, next) => {
@@ -103,6 +96,7 @@ module.exports.updateUser = (req, res, next) => {
       }
       return next(err);
     });
+  return next();
 };
 
 module.exports.updateUserAvatar = (req, res, next) => {
@@ -127,6 +121,7 @@ module.exports.updateUserAvatar = (req, res, next) => {
       }
       return next(err);
     });
+  return next();
 };
 
 module.exports.login = (req, res, next) => {
@@ -138,17 +133,18 @@ module.exports.login = (req, res, next) => {
   User.findUserByCredentials(email, password)
     .then((user) => {
       if (!user) {
-        return next(new WrongCredsError('Неправильные почта или пароль'));
+        return next(new Error401('Неправильные почта или пароль'));
       }
       const token = jwt.sign(
         { _id: user._id },
         NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
       );
-      const { password, ...responseUser } = user._doc;
       return res.cookie('jwt', token, {
         maxAge: 60 * 60 * 24 * 7,
         httpOnly: true,
-      }).send(responseUser).end();
+        sameSite: true,
+      }).send(getUserWithoutPassword(user)).end();
     })
     .catch((err) => next(err));
+  return next();
 };

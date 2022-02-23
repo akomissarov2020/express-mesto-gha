@@ -1,11 +1,11 @@
 const Error400 = require('../errors/error400');
-const Error401 = require('../errors/error401');
+const Error403 = require('../errors/error403');
 const Error404 = require('../errors/error404');
 const Card = require('../models/cards');
 
 module.exports.getCards = (req, res, next) => {
-  const owner = req.user._id;
-  Card.find({ owner })
+  Card.find()
+    .populate('owner')
     .then((cards) => res.send(cards))
     .catch((err) => next(err));
 };
@@ -27,6 +27,7 @@ module.exports.createCard = (req, res, next) => {
       }
       return next(err);
     });
+  return next();
 };
 
 module.exports.deleteCard = (req, res, next) => {
@@ -37,7 +38,7 @@ module.exports.deleteCard = (req, res, next) => {
         return next(new Error404('Карточка не найдена'));
       }
       if (card.owner !== req.user._id) {
-        return next(new Error401('Нет прав на удаление'));
+        return next(new Error403('Нет прав на удаление'));
       }
       return res.send(card);
     })
@@ -59,7 +60,7 @@ module.exports.likeCard = (req, res, next) => {
       if (!card) {
         return next(new Error404('Карточка не найдена'));
       }
-      res.send(card);
+      return res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
